@@ -28,7 +28,7 @@ in the terminal
 ## Author
 Database is built by Hongwei Li.
 
-Codes of search tool and README are written by Sirui Li (u5831882). 
+Codes of search tool and README are written by Sirui Li. 
 
 Mail: u5831882@anu.edu.au
 ## Acknowledgements
