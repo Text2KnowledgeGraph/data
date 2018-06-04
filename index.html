@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset = "UTF-8">
+  <title></title>
+  <style>
+    body{
+      margin: auto;
+      width: 50%;
+      padding: 10px;
+    }
+    .apiBox{
+      text-align: center;
+    }
+    input#userInput{
+      border-radius: 25px;
+      outline: none;
+      font-size: 16px;
+      transition: 0.4s;
+      line-height: 40px;
+      width: 400px;
+    }
+    button#btn{
+      width: 40px;
+      height: 40px;
+    }
+    form#form{
+      /*color: darkgreen;*/
+      /*text-align: center;*/
+      margin-left: 25%;
+      /*display: inline-block;*/
+    }
+    div#message{
+      height: 600px;
+      overflow-y: scroll;
+    }
+    .entity-name{
+      font-size: 20pt;
+      cursor: pointer;
+    }
+    .warning-type{
+      font-size: 17pt;
+      color: darkgreen;
+      cursor: pointer;
+    }
+    .warning-text{
+      font-size: 15pt;
+      cursor: pointer;
+    }
+  </style>
+  <script src="js/jquery-3.2.1.min.js"></script>
+  <script>
+  var data;
+  $(document).ready(function() {
+      $('#btn').click(function() {
+        //$("#form").remove();
+        $("#form").empty();
+        $("#message").empty();
+        var userInput = $('#userInput').val();
+        var request = $.ajax({
+              type: "POST",
+              url: "http://localhost/db1/query.php",
+              data: {"userInput":userInput},
+              dataType: "html"
+        })
+          request.done(function(msg) {
+            //document.getElementById('message').innerHTML = msg;
+            data = JSON.parse(msg);
+            form = document.getElementById("form");
+            table = document.createElement('table');
+            table.setAttribute("border",1);
+            table.setAttribute("id","table");
+            form.appendChild(table);
+            //form.setAttribute("id","form")
+            for(var entity in data["select"]){
+              tr = document.createElement('tr');
+              table.appendChild(tr);
+              td1 = document.createElement("td");
+              td1.innerHTML = entity;
+              tr.appendChild(td1);
+              td2 = document.createElement("td");
+              tr.appendChild(td2);
+              select = document.createElement("select");
+              select.setAttribute("id","select");
+              td2.appendChild(select);
+              for(var parent in data["select"][entity]){
+                op = document.createElement("option");
+                op.setAttribute("value", data["select"][entity][parent]);
+                op.innerHTML = data["select"][entity][parent];
+                select.appendChild(op);
+              }
+            }
+            tr_end = document.createElement('tr');
+            table.appendChild(tr_end);
+            td_end1 = document.createElement('td');
+            td_end1.innerHTML = "&nbsp;";
+            tr_end.appendChild(td_end1);
+            td_end2 = document.createElement('td');
+            button = document.createElement('button');
+            button.setAttribute("type","button");
+            button.setAttribute("id","btn2");
+            button.innerHTML = "Submit";
+            td_end2.appendChild(button);
+            tr_end.appendChild(td_end2);
+            //*/
+          });
+      });
+});
+$(document).on("click", "#btn2", function(){
+  $("#message").empty();
+  var table = document.getElementById("table");
+  var row;
+  var total = {};
+  var t = "";
+  for (var i = 0  ; i < table.rows.length-1 ;i++) {
+      row = table.rows[i];
+      var API = row.cells[0].innerHTML;
+      var parent = row.cells[1].childNodes[0].value;
+      total[API] = parent;
+  }
+  var request = $.ajax({
+      type: "POST",
+      url: "http://localhost/db1/rank.php",
+      data: {"userSelect":total,"entity_parent":data["en_pa"], "inputWords":data["inputWords"]},
+      dataType: "html"
+  })
+  request.done(function(msg) {
+    if(msg=="invalid"){
+      document.getElementById("message").innerHTML = "Sorry, there are no API caveats for your input!";
+    }else{
+      //document.getElementById("message").innerHTML = msg;
+      var result = JSON.parse(msg);
+      var ul = document.createElement('ul');
+      ul.setAttribute('class','collapsibleList');
+      document.getElementById('message').appendChild(ul);
+      for (var sent in result){
+        var li1 = document.createElement('li');
+        ul.appendChild(li1);
+        var a1 = document.createElement('a');
+        a1.setAttribute('class','sent');
+        a1.setAttribute('href', result[sent]);
+        a1.innerHTML=sent;
+        li1.appendChild(a1);
+      }
+    }
+  });
+});
+</script>
+<body>
+<form class="apiBox">
+<input type="text" name="name" id="userInput">
+<button id="btn" type="button">Go</button>
+</form>
+<form id="form"></form>
+<div id="message"></div>
+</body>
